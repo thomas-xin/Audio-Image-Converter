@@ -1,4 +1,4 @@
-import os, sys, time, subprocess, numpy
+import os, sys, time, subprocess, numpy, requests
 from PIL import Image
 np = numpy
 
@@ -22,8 +22,16 @@ else:
 
 if is_url(fn):
     fi, fn = fn, "temp.tmp"
-    subprocess.run(("py", "downloader.py", fi, fn))
-    fn = "files/" + fn
+    try:
+        with requests.get(fi, stream=True) as resp:
+            it = resp.iter_content(1048576)
+            with open(fn, "wb") as f:
+                b = next(it)
+                if not b:
+                    raise StopIteration
+                f.write(b)
+    except StopIteration:
+        pass
 
 if not pcm:
     cmd = ffmpeg_start + ("-f", "f32le", "-ac", "2", "-ar", "48k", "-i", "-", fo)
