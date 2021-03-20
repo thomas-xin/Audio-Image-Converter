@@ -22,7 +22,7 @@ else:
 
 if is_url(fn):
     fi, fn = fn, "temp.tmp"
-    subprocess.run("py", "downloader.py", fi, fn)
+    subprocess.run(("py", "downloader.py", fi, fn))
 
 if not pcm:
     cmd = ffmpeg_start + ("-f", "f32le", "-ac", "2", "-ar", "48k", "-i", "-", fo)
