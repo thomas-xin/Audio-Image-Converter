@@ -1,4 +1,4 @@
-import os, sys, time, subprocess, numpy
+import os, sys, time, subprocess, psutil, numpy
 from PIL import Image
 np = numpy
 
@@ -40,7 +40,7 @@ dfts = ffts // 2 + 1
 fi = "temp.pcm"
 
 cmd = ffmpeg_start + ("-i", fn, "-f", "f32le", "-ac", "2", "-ar", "48k", fi)
-p = subprocess.Popen(cmd, stderr=subprocess.PIPE)
+p = psutil.Popen(cmd, stderr=subprocess.PIPE)
 
 time.sleep(0.1)
 while True:
@@ -55,6 +55,9 @@ rat = np.log2(1.03125)
 columns = []
 while True:
     b = f.read(req)
+    while len(b) < req and p.is_running():
+        time.sleep(0.1)
+        b += f.read(req - len(b))
     if not b:
         break
     if len(b) < req:
