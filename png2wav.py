@@ -20,9 +20,9 @@ else:
     fo = fn.rsplit("/", 1)[-1].split("?", 1)[0].rsplit(".", 1)[0] + ".wav"
     pcm = False
 
-if is_url(fo):
-    fi, fo = fo, "temp.tmp"
-    subprocess.run("py", "downloader.py", fi, fo)
+if is_url(fn):
+    fi, fn = fn, "temp.tmp"
+    subprocess.run("py", "downloader.py", fi, fn)
 
 if not pcm:
     cmd = ffmpeg_start + ("-f", "f32le", "-ac", "2", "-ar", "48k", "-i", "-", fo)
