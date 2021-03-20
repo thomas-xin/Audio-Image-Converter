@@ -4,24 +4,30 @@ np = numpy
 
 ffmpeg_start = ("ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-fflags", "+discardcorrupt+fastseek+genpts+igndts+flush_packets", "-err_detect", "ignore_err", "-hwaccel", "auto", "-vn")
 
-hsv = False
+hsv = sys.argv[-1] != "-hsv"
+if not hsv:
+    sys.argv.pop(-1)
 if len(sys.argv) > 1:
     fn = sys.argv[1]
-    if len(sys.argv) > 2 and sys.argv[2] == "-rgb":
-        hsv = True
 else:
     fn = input("Please input a filename or URL: ")
-    hsv = True
 
-fo = fn.rsplit("/", 1)[-1].split("?", 1)[0].rsplit(".", 1)[0]
-fi = fo + ".wav"
+if len(sys.argv) > 2:
+    fo = sys.argv[2]
+    pcm = fo.endswith(".pcm")
+else:
+    fo = fn.rsplit("/", 1)[-1].split("?", 1)[0].rsplit(".", 1)[0] + ".wav"
+    pcm = False
 
-cmd = ffmpeg_start + ("-f", "f32le", "-ac", "2", "-ar", "48k", "-i", "-", fi)
-p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+if not pcm:
+    cmd = ffmpeg_start + ("-f", "f32le", "-ac", "2", "-ar", "48k", "-i", "-", fo)
+    p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+else:
+    f = open(fo, "wb")
 img = Image.open(fn)
 dfts = img.height >> 1
 ffts = dfts - 1 << 1
-print(dfts, ffts)
+# print(dfts, ffts)
 if hsv:
     img = img.convert("HSV")
 
@@ -45,7 +51,15 @@ for img in columns.swapaxes(0, 1):
     arr = np.empty(ffts << 1, dtype=np.float32)
     arr[::2] = left
     arr[1::2] = right
-    b = arr.tobytes()
-    p.stdin.write(b)
+    if pcm:
+        arr *= 32767
+        b = arr.astype(np.int16).tobytes()
+        f.write(b)
+    else:
+        b = arr.tobytes()
+        p.stdin.write(b)
 
-p.stdin.close()
+if pcm:
+    f.close()
+else:
+    p.stdin.close()

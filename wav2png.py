@@ -4,14 +4,18 @@ np = numpy
 
 ffmpeg_start = ("ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-fflags", "+discardcorrupt+fastseek+genpts+igndts+flush_packets", "-err_detect", "ignore_err", "-hwaccel", "auto", "-vn")
 
-hsv = False
+hsv = sys.argv[-1] != "-hsv"
+if not hsv:
+    sys.argv.pop(-1)
 if len(sys.argv) > 1:
     fn = sys.argv[1]
-    if len(sys.argv) > 2 and sys.argv[2] == "-rgb":
-        hsv = True
 else:
     fn = input("Please input a filename or URL: ")
-    hsv = True
+
+if len(sys.argv) > 2:
+    fo = sys.argv[2]
+else:
+    fo = fn.rsplit("/", 1)[-1].split("?", 1)[0].rsplit(".", 1)[0] + ".png"
 
 ffmpeg_probe = (
     "ffprobe",
@@ -26,15 +30,12 @@ ffmpeg_probe = (
     fn,
 )
 duration = float(subprocess.check_output(ffmpeg_probe))
-print(duration)
 frames = duration * 48000
 req = int(np.sqrt(frames * 64) / 8) * 8
-print(req)
 ffts = req // 8
 dfts = ffts // 2 + 1
-print(dfts, ffts)
+# print(dfts, ffts)
 
-fo = fn.rsplit("/", 1)[-1].split("?", 1)[0].rsplit(".", 1)[0]
 fi = "temp.pcm"
 
 cmd = ffmpeg_start + ("-i", fn, "-f", "f32le", "-ac", "2", "-ar", "48k", fi)
@@ -93,4 +94,4 @@ for i, img in enumerate(columns):
 if hsv:
     out = out.convert("RGB")
 
-out.save(fo + ".png")
+out.save(fo)
