@@ -26,10 +26,11 @@ if is_url(fn):
         with requests.get(fi, stream=True) as resp:
             it = resp.iter_content(1048576)
             with open(fn, "wb") as f:
-                b = next(it)
-                if not b:
-                    raise StopIteration
-                f.write(b)
+                while True:
+                    b = next(it)
+                    if not b:
+                        raise StopIteration
+                    f.write(b)
     except StopIteration:
         pass
 
