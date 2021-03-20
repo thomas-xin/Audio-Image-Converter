@@ -2,6 +2,7 @@ import os, sys, time, subprocess, numpy
 from PIL import Image
 np = numpy
 
+is_url = lambda url: "://" in url and url.split("://", 1)[0].rstrip("s") in ("http", "hxxp", "ftp", "fxp")
 ffmpeg_start = ("ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-fflags", "+discardcorrupt+fastseek+genpts+igndts+flush_packets", "-err_detect", "ignore_err", "-hwaccel", "auto", "-vn")
 
 hsv = sys.argv[-1] != "-hsv"
