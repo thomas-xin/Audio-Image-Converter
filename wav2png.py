@@ -95,6 +95,7 @@ while True:
 		lamp = np.empty(dfts, dtype=np.float32)
 		ramp = np.empty(dfts, dtype=np.float32)
 		amp2 = np.empty(dfts << 1, dtype=np.float32)
+		amp3 = np.empty(dfts << 1, dtype=np.uint8)
 		ampi = np.empty(dfts << 1, dtype=np.uint8)
 		ampe = np.empty(dfts << 1, dtype=np.float32)
 	lamp, lpha = np.abs(lft, out=lamp), np.angle(lft)
@@ -107,20 +108,20 @@ while True:
 	amp2 = np.log2(amp / 255, out=amp2)
 	np.multiply(amp2, 1 / rat, out=amp2)
 	np.clip(amp2, 0, 254, out=amp2)
-	ampi[:] = np.ceil(amp2, out=amp2)
+	ampi[:] = np.ceil(amp2, out=amp3, casting="unsafe")
 	np.power(1 / 1.03125, ampi, out=ampe)
 	amp *= ampe
 	np.clip(amp, None, 255, out=amp)
 	np.round(amp, out=amp)
-	np.subtract(255, amp2, out=amp2)
+	np.subtract(255, amp3, out=amp3)
 	phase *= 128 / np.pi
 	phase += 128
 	size = (1, len(amp))
 	ampi = round_random(phase)
 	hue = Image.frombuffer("L", size, ampi.tobytes())
-	ampi = round_random(amp2)
+	ampi = amp3
 	sat = Image.frombuffer("L", size, ampi.tobytes())
-	ampi = round_random(amp) 
+	ampi = round_random(amp)
 	val = Image.frombuffer("L", size, ampi.data)
 	img = Image.merge("HSV" if hsv else "RGB", (hue, sat, val))
 	columns.append(img)
