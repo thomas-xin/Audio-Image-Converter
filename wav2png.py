@@ -33,7 +33,7 @@ ffmpeg_probe = (
 )
 duration = float(subprocess.check_output(ffmpeg_probe))
 frames = duration * 48000
-req = int(np.sqrt(frames * 64) / 8) * 8
+req = int(np.sqrt(frames)) * 8
 ffts = req // 8
 dfts = ffts // 2 + 1
 # print(dfts, ffts)
